@@ -178,3 +178,60 @@
   transform: scale(1.05);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
+
+/* Estilos para mejorar el diseño de la pantalla de inicio de sesión */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #f3e8ff, #e0f7fa);
+}
+
+.login-card {
+  background: #ffffff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+}
+
+.login-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #4c1d95;
+  margin-bottom: 1rem;
+}
+
+.login-description {
+  font-size: 1rem;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.login-input {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}
+
+.login-button {
+  background: #4c1d95;
+  color: #ffffff;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.login-button:hover {
+  background: #6d28d9;
+}
