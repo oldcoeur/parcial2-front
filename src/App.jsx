@@ -1,165 +1,140 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getQuestions, saveResult } from "./services/api";
 import "./App.css";
 
-const categories = [
-  "Moda",
-  "Historia",
-  "Ciencia",
-  "Deporte",
-  "Arte"
-];
-
+// Ajustar el formulario para que se muestre completo en una sola pantalla
 function App() {
-  const [step, setStep] = useState("home"); // home | trivia | result
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [questions, setQuestions] = useState([]);
-  const [current, setCurrent] = useState(0);
-  const [score, setScore] = useState(0);
-  const [answers, setAnswers] = useState([]);
+  const [step, setStep] = useState('login'); // login | welcome | form | plan
+  const [userData, setUserData] = useState({
+    nombre: '',
+    edad: '',
+    genero: '',
+    peso: '',
+    estatura: '',
+    experiencia: 'principiante',
+    objetivo: '',
+    condiciones: '',
+    preferencias: '',
+    tiempo: '',
+    equipamiento: '',
+  });
+  const [plan, setPlan] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Elegir categoría y cargar preguntas
-  const handleCategory = async (cat) => {
-    setLoading(true);
-    setSelectedCategory(cat);
-    try {
-      const qs = await getQuestions(cat);
-      setQuestions(qs);
-      setStep("trivia");
-      setCurrent(0);
-      setScore(0);
-      setAnswers([]);
-    } catch (e) {
-      alert("Error al obtener preguntas");
-    }
-    setLoading(false);
-  };
-
-  // Responder pregunta
-  const handleAnswer = (isCorrect, answerText) => {
-    setAnswers([...answers, { 
-      question: questions[current].question, 
-      answer: answerText, 
-      correct: isCorrect 
-    }]);
-    if (isCorrect) setScore(score + 1);
-    if (current < questions.length - 1) {
-      setCurrent(current + 1);
-    }
-  };
-
-  // Finalizar trivia
-  const handleFinish = async () => {
-    setStep("result");
-    // Guardar resultado en backend
-    await saveResult({
-      category: selectedCategory,
-      questions: questions.map((q, i) => ({
-        question: q.question,
-        options: q.options,
-        userAnswer: answers[i]?.answer,
-        correct: answers[i]?.correct
-      })),
-      score,
-      date: new Date().toISOString()
-    });
-  };
-
-  // Volver al inicio
-  const handleRestart = () => {
-    setStep("home");
-    setSelectedCategory(null);
-    setQuestions([]);
-    setCurrent(0);
-    setScore(0);
-    setAnswers([]);
-  };
-
-  // Render
-  if (loading) return <div className="flex items-center justify-center h-screen">Cargando...</div>;
-
-  if (step === "home") {
+  // Pantalla de inicio de sesión
+  if (step === 'login') {
     return (
-      <div className="home-container">
-        <div className="home-card">
-          <h1 className="home-title">Aplicacion de Quizzes</h1>
-          <p className="home-description">
-            Testea que tanto sabes sobre cultura general <br />
-            Elige una categoría para comenzar:
-          </p>
-          <div className="grid grid-cols-1 gap-4 w-full">
-            {categories.map((cat, i) => (
-              <button
-                key={cat}
-                className="category-button"
-                onClick={() => handleCategory(cat)}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === "trivia") {
-    const q = questions[current];
-    return (
-      <div className="trivia-container">
-        <div className="trivia-card">
-          <h2 className="trivia-category">{selectedCategory}</h2>
-          <div className="trivia-question">{q.question}</div>
-          <div className="trivia-options">
-            {q.options.map((opt, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleAnswer(opt.isCorrect, opt.text)}
-                disabled={answers.length > current}
-              >
-                {opt.text}
-              </button>
-            ))}
-          </div>
-          <div className="trivia-footer">
-            Pregunta {current + 1} de {questions.length}
-          </div>
-          {answers.length > current && (
-            <button
-              className="trivia-next-button"
-              onClick={() => setCurrent(current + 1)}
-            >
-              Siguiente
+      <div className="login-container">
+        <div className="login-card">
+          <h1 className="login-title">¡Bienvenido a CBUM!</h1>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!userData.nombre.trim()) {
+                return alert('Por favor, ingresa tu nombre.');
+              }
+              setStep('welcome');
+            }}
+          >
+            <input
+              className="login-input"
+              type="text"
+              placeholder="Ingresa tu nombre"
+              value={userData.nombre}
+              onChange={(e) => setUserData({ ...userData, nombre: e.target.value })}
+            />
+            <button className="login-button" type="submit">
+              Iniciar sesión
             </button>
-          )}
-          {current === questions.length - 1 &&
-            answers.length === questions.length && (
-              <button className="trivia-next-button" onClick={handleFinish}>
-                Finalizar trivia
-              </button>
-            )}
+          </form>
         </div>
       </div>
     );
   }
 
-  if (step === "result") {
-    const percent = (score / questions.length) * 100;
+  // Pantalla de bienvenida
+  if (step === 'welcome') {
     return (
-      <div className="result-container">
-        <div className="result-card">
-          <h2 className="result-title">¡Resultados!</h2>
-          <p className="result-score">
-            Puntaje: <b>{score}</b> de {questions.length}
-          </p>
-          <p className="result-score">
-            Porcentaje: <b>{percent.toFixed(1)}%</b>
-          </p>
-          <button className="result-button" onClick={handleRestart}>
-            Volver al inicio
+      <div className="welcome-container" style={{ backgroundImage: 'url(/fitness-background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <h1 className="welcome-title">¡Hola, {userData.nombre}!</h1>
+        <p className="welcome-message">Estamos listos para comenzar tu transformación. Completa el formulario para que pueda crear tu plan personalizado.</p>
+        <button className="welcome-button" onClick={() => setStep('form')}>
+          Continuar
+        </button>
+      </div>
+    );
+  }
+
+  // Pantalla de formulario completo
+  if (step === 'form') {
+    return (
+      <div className="form-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#f0f0f0' }}>
+        <h1 className="form-title" style={{ color: '#333', textAlign: 'center', marginBottom: '20px' }}>Completa tu perfil para un plan personalizado:</h1>
+        <form
+          style={{ display: 'flex', flexDirection: 'column', width: '300px' }}
+          onSubmit={async (e) => {
+            e.preventDefault();
+            for (const key in userData) {
+              if (!userData[key].toString().trim()) {
+                return alert('Por favor, completa todos los campos.');
+              }
+            }
+            setLoading(true);
+            try {
+              const response = await fetch('/api/plan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ profile: userData }),
+              });
+              const data = await response.json();
+              if (data.success) {
+                setPlan(data.plan);
+                setStep('plan');
+              } else {
+                alert('Error al generar el plan.');
+              }
+            } catch (error) {
+              alert('Hubo un error al enviar los datos.');
+            } finally {
+              setLoading(false);
+            }
+          }}
+        >
+          <label>Edad (años):</label>
+          <input className="form-input" type="number" placeholder="Edad" value={userData.edad} onChange={(e) => setUserData({ ...userData, edad: e.target.value })} style={{ marginBottom: '10px', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+          <label>Peso actual (kg):</label>
+          <input className="form-input" type="number" placeholder="Peso actual (kg)" value={userData.peso} onChange={(e) => setUserData({ ...userData, peso: e.target.value })} style={{ marginBottom: '10px', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+          <label>Estatura (cm):</label>
+          <input className="form-input" type="number" placeholder="Estatura (cm)" value={userData.estatura} onChange={(e) => setUserData({ ...userData, estatura: e.target.value })} style={{ marginBottom: '10px', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+          <label>Objetivo principal:</label>
+          <input className="form-input" type="text" placeholder="Objetivo principal" value={userData.objetivo} onChange={(e) => setUserData({ ...userData, objetivo: e.target.value })} style={{ marginBottom: '10px', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+          <label>Nivel de experiencia:</label>
+          <input className="form-input" type="text" placeholder="Nivel de experiencia" value={userData.experiencia} onChange={(e) => setUserData({ ...userData, experiencia: e.target.value })} style={{ marginBottom: '10px', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+          <label>Condiciones médicas o lesiones:</label>
+          <input className="form-input" type="text" placeholder="Condiciones médicas o lesiones" value={userData.condiciones} onChange={(e) => setUserData({ ...userData, condiciones: e.target.value })} style={{ marginBottom: '10px', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+          <label>Preferencias alimenticias:</label>
+          <input className="form-input" type="text" placeholder="Preferencias alimenticias" value={userData.preferencias} onChange={(e) => setUserData({ ...userData, preferencias: e.target.value })} style={{ marginBottom: '10px', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+          <label>Tiempo disponible para entrenar:</label>
+          <input className="form-input" type="text" placeholder="Tiempo disponible para entrenar" value={userData.tiempo} onChange={(e) => setUserData({ ...userData, tiempo: e.target.value })} style={{ marginBottom: '10px', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+          <label>Equipamiento disponible:</label>
+          <input className="form-input" type="text" placeholder="Equipamiento disponible" value={userData.equipamiento} onChange={(e) => setUserData({ ...userData, equipamiento: e.target.value })} style={{ marginBottom: '10px', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+          <button className="form-button" type="submit" disabled={loading} style={{ padding: '10px', borderRadius: '5px', backgroundColor: '#007BFF', color: '#fff', border: 'none', cursor: 'pointer' }}>
+            {loading ? 'Generando plan...' : 'Enviar'}
           </button>
-        </div>
+        </form>
+      </div>
+    );
+  }
+
+  // Pantalla del plan
+  if (step === 'plan') {
+    return (
+      <div className="plan-container">
+        <h1 className="plan-title">Tu plan personalizado</h1>
+        <p className="plan-content">{plan}</p>
+        <button className="plan-button" onClick={() => setStep('form')}>
+          Editar perfil
+        </button>
       </div>
     );
   }
